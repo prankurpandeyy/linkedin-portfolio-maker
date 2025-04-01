@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 
 export default function Hero() {
   const [url, setUrl] = useState("");
@@ -71,6 +72,15 @@ export default function Hero() {
           </button>
         </div>
       </form>
+
+      {/* Privacy Policy Link */}
+      <p className="mt-6 text-gray-500 text-sm">
+        By using this service, you agree to our{" "}
+        <Link href="/privacy-policy">
+          <span className="text-blue-600 hover:underline">Privacy Policy</span>
+        </Link>
+        .
+      </p>
     </div>
   );
 }
