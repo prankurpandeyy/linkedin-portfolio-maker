@@ -1,86 +1,114 @@
 "use client";
 import { useState } from "react";
-import Link from "next/link";
+import { scrapeLinkedInProfile } from "../services/linkedinScraper";
+import LoadingSpinner from "./LoadingSpinner";
+import Portfolio from "./Portfolio";
+import { FaLinkedin } from "react-icons/fa";
 
 export default function Hero() {
   const [url, setUrl] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [portfolioData, setPortfolioData] = useState(null);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+
+    if (!url.includes("linkedin.com/in/")) {
+      setError("Please enter a valid LinkedIn profile URL");
+      return;
+    }
+
     setIsLoading(true);
-    // Add your generation logic here
-    setTimeout(() => setIsLoading(false), 2000); // Simulate loading
+    try {
+      const data = await scrapeLinkedInProfile(url);
+      setPortfolioData(data);
+    } catch (error) {
+      setError(error.message);
+      console.error("Failed to generate portfolio:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
+  if (portfolioData) {
+    return <Portfolio data={portfolioData} />;
+  }
+
   return (
-    <div className="flex flex-col items-center justify-center max-w-4xl mx-auto text-center px-4 py-16">
-      {/* Hero Title */}
-      <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
-        Turn Your LinkedIn into a Stunning Portfolio!
-      </h1>
+    <>
+      <div className="flex flex-col items-center justify-center min-h-screen py-16 px-4">
+        <div className="max-w-4xl w-full text-center space-y-8">
+          <FaLinkedin className="w-20 h-20 text-primary-600 mx-auto" />
 
-      {/* Subtitle */}
-      <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-12">
-        Transform your professional profile into an impressive showcase in
-        seconds
-      </p>
+          <h1 className="text-4xl md:text-6xl font-bold">
+            <span className="bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">
+              Turn Your LinkedIn into a Stunning Portfolio!
+            </span>
+          </h1>
 
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="w-full max-w-xl">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <input
-            type="url"
-            placeholder="Enter your LinkedIn URL"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            className="flex-1 px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-            required
-          />
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center min-w-[160px]"
-          >
-            {isLoading ? (
-              <div className="flex items-center">
-                <svg
-                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                Processing...
-              </div>
-            ) : (
-              "Generate Portfolio"
-            )}
-          </button>
+          <p className="text-xl text-gray-600 dark:text-gray-300">
+            Transform your professional profile into an impressive showcase in
+            seconds
+          </p>
+
+          <form onSubmit={handleSubmit} className="max-w-2xl mx-auto space-y-4">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <input
+                type="url"
+                placeholder="Paste your LinkedIn profile URL"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                className="flex-1 px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 
+                         bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 
+                         focus:border-transparent outline-none dark:text-white"
+                required
+              />
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-lg 
+                         font-medium transition-colors duration-200 disabled:opacity-70 
+                         disabled:cursor-not-allowed flex items-center justify-center 
+                         min-w-[160px]"
+              >
+                {isLoading ? "Processing..." : "Generate Portfolio"}
+              </button>
+            </div>
+            {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+          </form>
+
+          <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+              <h3 className="font-bold text-lg mb-2 dark:text-white">
+                Professional Design
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300">
+                Clean and modern portfolio layout that highlights your
+                achievements
+              </p>
+            </div>
+            <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+              <h3 className="font-bold text-lg mb-2 dark:text-white">
+                Instant Generation
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300">
+                Get your portfolio website ready in seconds with just one click
+              </p>
+            </div>
+            <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+              <h3 className="font-bold text-lg mb-2 dark:text-white">
+                Mobile Responsive
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300">
+                Your portfolio looks great on all devices and screen sizes
+              </p>
+            </div>
+          </div>
         </div>
-      </form>
-
-      {/* Privacy Policy Link */}
-      <p className="mt-6 text-gray-500 text-sm">
-        By using this service, you agree to our{" "}
-        <Link href="/privacy-policy">
-          <span className="text-blue-600 hover:underline">Privacy Policy</span>
-        </Link>
-        .
-      </p>
-    </div>
+      </div>
+      {isLoading && <LoadingSpinner />}
+    </>
   );
 }
